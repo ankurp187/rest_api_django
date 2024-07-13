@@ -6,6 +6,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from permissions import IsOwner
+# from rest_framework.permissions import IsAuthenticated
+
 from .models import Todo
 from .serializers import TodoSerializer
 
@@ -13,14 +17,22 @@ from .serializers import TodoSerializer
 class TodoListApiView(APIView):
 
     # add permissions to check if user is Authenticated
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated,IsOwner]
+    authentication_classes = [JWTAuthentication]
 
 
     def get(self,request,*args,**kwargs):
         '''List all the Todo items for given requested user'''
         todos = Todo.objects.filter(user = request.user.id)
         serializer = TodoSerializer(todos, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        custom_data = {
+            'count': todos.count(),  # Total count of todos
+            'results': serializer.data,  # Serialized todo items
+            'message': 'List of todo items retrieved successfully.'
+        }
+
+        return Response(custom_data, status=status.HTTP_200_OK)
     
     def post(self,request,*args,**kwargs):
         '''Create the Todo with given todo data'''
@@ -40,7 +52,8 @@ class TodoListApiView(APIView):
     
 class TodoDetailApiView(APIView):
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwner]
+    authentication_classes = [JWTAuthentication]
 
     def get_object(self, todo_id, user_id):
         try:
