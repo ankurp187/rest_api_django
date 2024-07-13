@@ -20,6 +20,8 @@ from todo_api import urls as todo_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api-auth/',include('rest_framework.urls')),
+    path('auth/',include('djoser.urls')),
+    path('auth/',include('djoser.urls.jwt')),
+    # path('api-auth/',include('rest_framework.urls')),
     # path('todos/',include(todo_urls))
 ]
